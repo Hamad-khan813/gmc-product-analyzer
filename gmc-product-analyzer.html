@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMC Product Analyzer — Fix Google Merchant Center Disapprovals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --info: #0891b2;
+            --info-bg: #ecfeff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+            background: rgba(255,255,255,0.95);
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 14px;
+        }
+        .header-tag {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--border-light);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 3rem 1.5rem 2rem;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .hero h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--text) 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.0625rem;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 999px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+        }
+        .badge-success { background: var(--success-bg); color: var(--success); }
+        .badge-info { background: var(--info-bg); color: var(--info); }
+        .badge-warning { background: var(--warning-bg); color: var(--warning); }
+
+        /* Main Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .grid { grid-template-columns: 1fr 1fr; align-items: start; }
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .card-header-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+        .card-header-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .card-header-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.375rem;
+        }
+        .form-label .required { color: var(--danger); margin-left: 2px; }
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            color: var(--text);
+            background: var(--surface);
+            transition: all 0.15s ease;
+            outline: none;
+        }
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2.5rem;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s ease;
+            width: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.25);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.35);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+            width: auto;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { background: var(--border-light); }
+
+        /* Spinner */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Results Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .empty-state h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Risk Score */
+        .risk-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border);
+        }
+        .risk-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .risk-score {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .risk-ring {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            position: relative;
+        }
+        .risk-ring::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+        .risk-ring.low { background: var(--success-bg); color: var(--success); }
+        .risk-ring.low::before { border-top-color: var(--success); border-right-color: var(--success); }
+        .risk-ring.medium { background: var(--warning-bg); color: var(--warning); }
+        .risk-ring.medium::before { border-top-color: var(--warning); border-right-color: var(--warning); border-bottom-color: var(--warning); }
+        .risk-ring.high { background: var(--danger-bg); color: var(--danger); }
+        .risk-ring.high::before { border-color: var(--danger); }
+        .risk-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .risk-label.low { color: var(--success); }
+        .risk-label.medium { color: var(--warning); }
+        .risk-label.high { color: var(--danger); }
+        .risk-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+        .risk-bar-fill.low { background: var(--success); }
+        .risk-bar-fill.medium { background: var(--warning); }
+        .risk-bar-fill.high { background: var(--danger); }
+        .risk-explanation {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-top: 0.75rem;
+            line-height: 1.6;
+        }
+
+        /* Violations */
+        .violations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .violation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: all 0.15s ease;
+        }
+        .violation-item:hover {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+        }
+        .violation-icon {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+        }
+        .violation-icon.error { background: var(--danger-bg); color: var(--danger); }
+        .violation-icon.warning { background: var(--warning-bg); color: var(--warning); }
+        .violation-text {
+            font-size: 0.875rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .violation-text strong {
+            display: block;
+            margin-bottom: 0.125rem;
+        }
+        .violation-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Fixed Content */
+        .fixed-section {
+            margin-bottom: 1.25rem;
+        }
+        .fixed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .fixed-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .fixed-box {
+            background: var(--primary-light);
+            border: 1.5px solid rgba(37, 99, 235, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: var(--text);
+            position: relative;
+        }
+        .fixed-box code {
+            background: rgba(37, 99, 235, 0.08);
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.8125rem;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .fixed-box:hover .copy-btn { opacity: 1; }
+
+        /* Attributes */
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .attribute-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+        .attribute-chip.required {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .attribute-chip.recommended {
+            border-color: var(--warning);
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+        .attribute-chip.optional {
+            border-color: var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
+        }
+
+        /* Recommendations */
+        .recommendations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+        .recommendation-item::before {
+            content: '→';
+            color: var(--primary);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            color: white;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .cta-section h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .cta-section p {
+            color: #94a3b8;
+            font-size: 0.9375rem;
+            margin-bottom: 1.25rem;
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            color: #0f172a;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .cta-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--text);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+        .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <a href="#" class="logo">
+                <div class="logo-icon">🔍</div>
+                GMC Product Analyzer
+            </a>
+            <span class="header-tag">Free Tool — No Signup</span>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>Fix Your Google Merchant Center Disapprovals</h1>
+        <p>Paste your product details and get instant compliance analysis, risk scoring, and optimized versions that pass GMC review.</p>
+        <div class="hero-badges">
+            <span class="badge badge-success">✓ 100% Free</span>
+            <span class="badge badge-info">⚡ Instant Analysis</span>
+            <span class="badge badge-warning">🔒 No Data Stored</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <!-- Left: Form -->
+            <div class="card" style="position: sticky; top: 80px;">
+                <div class="card-header">
+                    <div class="card-header-icon" style="background: var(--primary-light); color: var(--primary);">📝</div>
+                    <div>
+                        <div class="card-header-title">Product Details</div>
+                        <div class="card-header-subtitle">Fill in your listing information</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="analyzerForm">
+                        <div class="form-group">
+                            <label class="form-label">Product Title <span class="required">*</span></label>
+                            <input type="text" id="title" placeholder="e.g., Nike Air Max 90 Men's Running Shoes — White/Black Size 10" maxlength="500">
+                            <div class="form-hint">
+                                <span>Keep it under 150 characters for best results</span>
+                                <span id="titleCount">0/500</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Product Description <span class="required">*</span></label>
+                            <textarea id="description" placeholder="Paste your full product description here... Include materials, dimensions, features, and care instructions." maxlength="5000"></textarea>
+                            <div class="form-hint">
+                                <span>Be detailed but avoid promotional language</span>
+                                <span id="descCount">0/5000</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Target Country <span class="required">*</span></label>
+                                <select id="country">
+                                    <option value="US">🇺🇸 United States</option>
+                                    <option value="UK">🇬🇧 United Kingdom</option>
+                                    <option value="CA">🇨🇦 Canada</option>
+                                    <option value="AU">🇦🇺 Australia</option>
+                                    <option value="DE">🇩🇪 Germany</option>
+                                    <option value="FR">🇫🇷 France</option>
+                                    <option value="IN">🇮🇳 India</option>
+                                    <option value="AE">🇦🇪 UAE</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category <span class="required">*</span></label>
+                                <select id="category">
+                                    <option value="apparel">Apparel & Accessories</option>
+                                    <option value="electronics">Electronics</option>
+                                    <option value="home">Home & Garden</option>
+                                    <option value="health">Health & Beauty</option>
+                                    <option value="sports">Sports & Outdoors</option>
+                                    <option value="toys">Toys & Games</option>
+                                    <option value="food">Food & Grocery</option>
+                                    <option value="jewelry">Jewelry & Watches</option>
+                                    <option value="other" selected>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Known Issue (Optional)</label>
+                            <select id="issue">
+                                <option value="optimize">Not sure — Just optimize</option>
+                                <option value="disapproved">Product disapproved</option>
+                                <option value="limited">Limited performance</option>
+                                <option value="pending">Pending review</option>
+                                <option value="policy">Policy violation detected</option>
+                                <option value="misrepresentation">Misrepresentation warning</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span id="btnText">🔍 Analyze & Fix My Product</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Results -->
+            <div id="resultsPanel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon" style="background: var(--border-light); color: var(--text-muted);">📊</div>
+                        <div>
+                            <div class="card-header-title">Analysis Results</div>
+                            <div class="card-header-subtitle">Compliance check & recommendations</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>Ready to Analyze</h3>
+                            <p>Fill in your product details and click analyze<br>Results will appear here instantly</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>🔒 All analysis runs locally in your browser. No data is sent to any server.</p>
+        <p style="margin-top: 0.25rem;">GMC Product Analyzer — Built for e-commerce sellers</p>
+    </footer>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+    // ============================================
+    // GMC PRODUCT ANALYZER — CORE LOGIC
+    // ============================================
+
+    const PROMOTIONAL_WORDS = [
+        'free', 'sale', 'discount', 'cheap', 'bargain', 'deal', 'promo', 'promotion',
+        'clearance', 'liquidation', 'wholesale', 'bulk', 'best price', 'lowest price',
+        'hot', 'trending', 'viral', 'must-have', 'limited time', 'act now', 'hurry',
+        'order now', 'buy now', 'click here', 'call now', 'dont miss', 'dont wait',
+        'amazing', 'incredible', 'unbelievable', 'fantastic', 'awesome', 'best ever',
+        'guaranteed', 'no risk', 'money back', '100% satisfaction', 'satisfaction guaranteed'
+    ];
+
+    const SPAM_PATTERNS = [
+        /\b\d{3,}\b/,  // Long number sequences
+        /[!?]{2,}/,       // Multiple punctuation
+        /\b\w*\d{3,}\w*\b/, // Words with many digits
+        /\$\d+\.\d{2}/,  // Price in title
+        /\b[A-Z]{4,}\b/,  // ALL CAPS words
+    ];
+
+    const CATEGORY_ATTRIBUTES = {
+        apparel: {
+            required: ['color', 'size', 'gender', 'age_group', 'material'],
+            recommended: ['pattern', 'size_type', 'size_system', 'item_group_id'],
+            optional: ['fit', 'care_instructions', 'occasion']
+        },
+        electronics: {
+            required: ['brand', 'gtin', 'mpn', 'condition'],
+            recommended: ['energy_efficiency', 'warranty', 'color'],
+            optional: ['screen_size', 'memory', 'processor']
+        },
+        home: {
+            required: ['brand', 'condition', 'color', 'material'],
+            recommended: ['pattern', 'size', 'weight'],
+            optional: ['assembly_required', 'care_instructions']
+        },
+        health: {
+            required: ['brand', 'gtin', 'condition', 'ingredients'],
+            recommended: ['size', 'color', 'age_group'],
+            optional: ['scent', 'skin_type', 'spf']
+        },
+        sports: {
+            required: ['brand', 'condition', 'color', 'size'],
+            recommended: ['gender', 'age_group', 'material'],
+            optional: ['skill_level', 'sport_type']
+        },
+        toys: {
+            required: ['brand', 'age_group', 'condition'],
+            recommended: ['gtin', 'color', 'material'],
+            optional: ['educational', 'battery_required']
+        },
+        food: {
+            required: ['brand', 'gtin', 'expiration_date', 'weight'],
+            recommended: ['ingredients', 'allergens', 'nutritional_info'],
+            optional: ['organic', 'gluten_free', 'vegan']
+        },
+        jewelry: {
+            required: ['brand', 'material', 'color'],
+            recommended: ['size', 'gemstone', 'metal_type'],
+            optional: ['karat', 'clarity', 'cut']
+        },
+        other: {
+            required: ['brand', 'condition'],
+            recommended: ['gtin', 'color', 'size'],
+            optional: ['material', 'weight']
+        }
+    };
+
+    const COUNTRY_REQUIREMENTS = {
+        US: { currency: 'USD', requires: ['shipping', 'tax'] },
+        UK: { currency: 'GBP', requires: ['shipping'] },
+        CA: { currency: 'CAD', requires: ['shipping'] },
+        AU: { currency: 'AUD', requires: ['shipping'] },
+        DE: { currency: 'EUR', requires: ['shipping'] },
+        FR: { currency: 'EUR', requires: ['shipping'] },
+        IN: { currency: 'INR', requires: ['shipping'] },
+        AE: { currency: 'AED', requires: ['shipping'] }
+    };
+
+    function analyzeTitleViolations(title) {
+        const violations = [];
+        const lowerTitle = title.toLowerCase();
+
+        // Length check
+        if (title.length > 150) {
+            violations.push({
+                type: 'error',
+                message: 'Title exceeds 150 characters',
+                detail: `Current: ${title.length} chars. GMC recommends 70-150 characters for optimal display.`,
+                fix: 'shorten'
+            });
+        } else if (title.length < 20) {
+            violations.push({
+                type: 'error',
+                message: 'Title is too short',
+                detail: `Current: ${title.length} chars. Titles under 20 characters lack descriptive value.`,
+                fix: 'expand'
+            });
+        }
+
+        // Promotional language
+        const foundPromo = PROMOTIONAL_WORDS.filter(word => lowerTitle.includes(word));
+        if (foundPromo.length > 0) {
+            violations.push({
+                type: 'error',
+                message: 'Promotional language detected in title',
+                detail: `Found: "${foundPromo.join('", "')}". GMC prohibits promotional text in product titles.`,
+                fix: 'remove_promo'
+            });
+        }
+
+        // ALL CAPS
+        const capsWords = title.split(' ').filter(w => w.length > 2 && w === w.toUpperCase() && /^[A-Z]+$/.test(w));
+        if (capsWords.length > 0) {
+            violations.push({
+                type: 'warning',
+                message: 'Excessive capitalization in title',
+                detail: `Words: ${capsWords.join(', ')}. Use title case instead.`,
+                fix: 'title_case'
+            });
+        }
+
+        // Price in title
+        if (/\$|€|£|\d+\.\d{2}/.test(title)) {
+            violations.push({
+                type: 'error',
+                message: 'Price information in title',
+                detail: 'Prices should be in the price field, not the title.',
+                fix: 'remove_price'
+            });
+        }
+
+        // Special characters
+        const specialChars = title.match(/[!@#$%^&*()_+=\[\]{}|;:'",<>?]/g);
+        if (specialChars && specialChars.length > 3) {
+            violations.push({
+                type: 'warning',
+                message: 'Excessive special characters',
+                detail: 'Too many symbols can trigger spam filters.',
+                fix: 'clean_chars'
+            });
+        }
+
+        // Duplicate words
+        const words = lowerTitle.split(/\s+/).filter(w => w.length > 2);
+        const duplicates = words.filter((item, index) => words.indexOf(item) !== index);
+        if (duplicates.length > 0) {
+            const uniqueDups = [...new Set(duplicates)];
+            violations.push({
+                type: 'warning',
+                message: 'Duplicate words in title',
+                detail: `Repeated: "${uniqueDups.join('", "')}". Remove redundancy.`,
+                fix: 'deduplicate'
+            });
+        }
+
+        return violations;
+    }
+
+    function analyzeDescriptionViolations(description) {
+        const violations = [];
+        const lowerDesc = description.toLowerCase();
+
+        // Length
+        if (description.length < 50) {
+            violations.push({
+                type: 'error',
+                message: 'Description is too short',
+                detail: `Current: ${description.length} chars. Minimum recommended: 500 characters.`,
+                fix: 'expand_desc'
+            });
+        }
+
+        // Promotional language
+        const foundPromo = PROMOTIONAL_WORDS.filter(word => lowerDesc.includes(word));
+        if (foundPromo.length > 0) {
+            violations.push({
+                type: 'error',
+                message: 'Promotional language in description',
+                detail: `Found: "${foundPromo.join('", "')}". Remove sales-focused language.`,
+                fix: 'remove_promo_desc'
+            });
+        }
+
+        // HTML tags
+        if (/<[^>]+>/.test(description)) {
+            violations.push({
+                type: 'warning',
+                message: 'HTML tags detected',
+                detail: 'GMC prefers plain text descriptions. Some HTML may be stripped.',
+                fix: 'strip_html'
+            });
+        }
+
+        // Contact info
+        if (/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(description) ||
+            /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/.test(description)) {
+            violations.push({
+                type: 'error',
+                message: 'Contact information in description',
+                detail: 'Email addresses and phone numbers should not be in product descriptions.',
+                fix: 'remove_contact'
+            });
+        }
+
+        // URLs
+        if (/https?:\/\//.test(description)) {
+            violations.push({
+                type: 'warning',
+                message: 'External URLs in description',
+                detail: 'Links to external sites may be flagged.',
+                fix: 'remove_urls'
+            });
+        }
+
+        // All caps paragraphs
+        const capsParagraphs = description.split('\n').filter(p => p.length > 20 && p === p.toUpperCase());
+        if (capsParagraphs.length > 0) {
+            violations.push({
+                type: 'warning',
+                message: 'Excessive capitalization detected',
+                detail: 'Large blocks of ALL CAPS text may trigger filters.',
+                fix: 'normalize_case'
+            });
+        }
+
+        return violations;
+    }
+
+    function calculateRiskScore(titleV, descV, title, description) {
+        let score = 0;
+        const errors = [...titleV, ...descV].filter(v => v.type === 'error').length;
+        const warnings = [...titleV, ...descV].filter(v => v.type === 'warning').length;
+
+        score += errors * 25;
+        score += warnings * 10;
+
+        if (title.length < 20) score += 15;
+        if (title.length > 150) score += 10;
+        if (description.length < 50) score += 20;
+        if (description.length > 5000) score += 5;
+
+        score = Math.min(100, Math.max(0, score));
+
+        let level, explanation;
+        if (score < 25) {
+            level = 'low';
+            explanation = 'Your product listing looks good! Minor optimizations may improve performance, but no critical issues were found.';
+        } else if (score < 60) {
+            level = 'medium';
+            explanation = 'Several issues detected that could limit performance or trigger manual review. Address the warnings below to improve approval chances.';
+        } else {
+            level = 'high';
+            explanation = 'Critical issues found that will likely cause disapproval or policy violation. Immediate fixes required before submitting to GMC.';
+        }
+
+        return { score, level, explanation };
+    }
+
+    function generateFixedTitle(title, category) {
+        let fixed = title;
+        const lower = fixed.toLowerCase();
+
+        // Remove promotional words
+        PROMOTIONAL_WORDS.forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            fixed = fixed.replace(regex, '').replace(/\s+/g, ' ').trim();
+        });
+
+        // Remove prices
+        fixed = fixed.replace(/\$\d+(?:\.\d{2})?/g, '').replace(/€\d+(?:\.\d{2})?/g, '').replace(/£\d+(?:\.\d{2})?/g, '');
+
+        // Normalize case
+        fixed = fixed.split(' ').map(w => {
+            if (w.length > 2 && w === w.toUpperCase() && /^[A-Z]+$/.test(w)) {
+                return w.charAt(0) + w.slice(1).toLowerCase();
+            }
+            return w;
+        }).join(' ');
+
+        // Remove special chars
+        fixed = fixed.replace(/[!@#$%^&*()_+=\[\]{}|;:'",<>?]{2,}/g, ' ');
+
+        // Deduplicate
+        const words = fixed.split(' ');
+        const seen = new Set();
+        fixed = words.filter(w => {
+            const key = w.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).join(' ');
+
+        // Trim and cap
+        fixed = fixed.trim();
+        if (fixed.length > 150) fixed = fixed.substring(0, 147) + '...';
+
+        return fixed || title;
+    }
+
+    function generateFixedDescription(description) {
+        let fixed = description;
+
+        // Remove promotional words
+        PROMOTIONAL_WORDS.forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'gi');
+            fixed = fixed.replace(regex, '');
+        });
+
+        // Strip HTML
+        fixed = fixed.replace(/<[^>]+>/g, ' ');
+
+        // Remove contact info
+        fixed = fixed.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[contact removed]');
+        fixed = fixed.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '[phone removed]');
+
+        // Remove URLs
+        fixed = fixed.replace(/https?:\/\/[^\s]+/g, '[link removed]');
+
+        // Normalize excessive caps
+        fixed = fixed.split('\n').map(p => {
+            if (p.length > 20 && p === p.toUpperCase()) {
+                return p.charAt(0) + p.slice(1).toLowerCase();
+            }
+            return p;
+        }).join('\n');
+
+        // Clean up whitespace
+        fixed = fixed.replace(/\s+/g, ' ').trim();
+
+        return fixed || description;
+    }
+
+    function getRequiredAttributes(category, country) {
+        const attrs = CATEGORY_ATTRIBUTES[category] || CATEGORY_ATTRIBUTES.other;
+        const countryReqs = COUNTRY_REQUIREMENTS[country] || COUNTRY_REQUIREMENTS.US;
+
+        const result = [];
+        attrs.required.forEach(a => result.push({ name: a, priority: 'required' }));
+        attrs.recommended.forEach(a => result.push({ name: a, priority: 'recommended' }));
+        attrs.optional.forEach(a => result.push({ name: a, priority: 'optional' }));
+
+        countryReqs.requires.forEach(r => {
+            if (!result.find(x => x.name === r)) {
+                result.push({ name: r, priority: 'required' });
+            }
+        });
+
+        return result;
+    }
+
+    function generateRecommendations(titleV, descV, attributes) {
+        const recs = [];
+
+        if (titleV.some(v => v.fix === 'shorten')) {
+            recs.push('Shorten your title to under 150 characters. Focus on brand + product type + key attributes (color, size, material).');
+        }
+        if (titleV.some(v => v.fix === 'expand')) {
+            recs.push('Expand your title to at least 20 characters. Include brand name, product type, and 1-2 key differentiators.');
+        }
+        if (descV.some(v => v.fix === 'expand_desc')) {
+            recs.push('Lengthen your description to 500+ characters. Include materials, dimensions, care instructions, and use cases.');
+        }
+        if ([...titleV, ...descV].some(v => v.fix && v.fix.includes('promo'))) {
+            recs.push('Remove all promotional language. Use factual, descriptive text only. Save marketing copy for your website.');
+        }
+        if (titleV.some(v => v.fix === 'title_case')) {
+            recs.push('Use Title Case for your product title. Only capitalize the first letter of each major word.');
+        }
+        if (descV.some(v => v.fix === 'strip_html')) {
+            recs.push('Remove HTML formatting from your description. Use plain text with line breaks for readability.');
+        }
+
+        const missingRequired = attributes.filter(a => a.priority === 'required');
+        if (missingRequired.length > 0) {
+            recs.push(`Ensure these required attributes are filled: ${missingRequired.map(a => a.name).join(', ')}.`);
+        }
+
+        recs.push('Add high-quality images (minimum 1, ideally 3-5) with white backgrounds for the main image.');
+        recs.push('Verify your GTIN/UPC/EAN is valid and matches the product exactly.');
+        recs.push('Double-check that your product URL leads directly to the product page, not a category page.');
+
+        return recs;
+    }
+
+    function analyzeProduct(title, description, country, category, issue) {
+        const titleViolations = analyzeTitleViolations(title);
+        const descViolations = analyzeDescriptionViolations(description);
+        const riskData = calculateRiskScore(titleViolations, descViolations, title, description);
+        const fixedTitle = generateFixedTitle(title, category);
+        const fixedDescription = generateFixedDescription(description);
+        const requiredAttributes = getRequiredAttributes(category, country);
+        const recommendations = generateRecommendations(titleViolations, descViolations, requiredAttributes);
+
+        return {
+            violations: [...titleViolations, ...descViolations],
+            riskScore: riskData.score,
+            riskLevel: riskData.level,
+            explanation: riskData.explanation,
+            fixedTitle,
+            fixedDescription,
+            requiredAttributes,
+            recommendations
+        };
+    }
+
+    // ============================================
+    // UI CONTROLLERS
+    // ============================================
+
+    const form = document.getElementById('analyzerForm');
+    const titleInput = document.getElementById('title');
+    const descInput = document.getElementById('description');
+    const titleCount = document.getElementById('titleCount');
+    const descCount = document.getElementById('descCount');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const resultsPanel = document.getElementById('resultsPanel');
+    const toast = document.getElementById('toast');
+
+    // Character counters
+    titleInput.addEventListener('input', () => {
+        titleCount.textContent = `${titleInput.value.length}/500`;
+    });
+    descInput.addEventListener('input', () => {
+        descCount.textContent = `${descInput.value.length}/5000`;
+    });
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function copyToClipboard(text, label) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(`${label} copied!`);
+        });
+    }
+
+    function renderResults(data) {
+        const errorCount = data.violations.filter(v => v.type === 'error').length;
+        const warningCount = data.violations.filter(v => v.type === 'warning').length;
+        const hasViolations = data.violations.length > 0;
+
+        const violationsHtml = hasViolations
+            ? data.violations.map((v, i) => `
+                <div class="violation-item animate-in stagger-${Math.min(i+1, 4)}">
+                    <div class="violation-icon ${v.type}">${v.type === 'error' ? '✕' : '!'}</div>
+                    <div>
+                        <div class="violation-text"><strong>${v.message}</strong>${v.detail}</div>
+                    </div>
+                </div>
+            `).join('')
+            : `
+                <div class="violation-item animate-in" style="border-color: var(--success); background: var(--success-bg);">
+                    <div class="violation-icon" style="background: var(--success-bg); color: var(--success);">✓</div>
+                    <div>
+                        <div class="violation-text"><strong>No violations found</strong>Your title and description meet GMC guidelines. Great job!</div>
+                    </div>
+                </div>
+            `;
+
+        const attributesHtml = data.requiredAttributes.map((attr, i) => `
+            <div class="attribute-chip ${attr.priority} animate-in stagger-${Math.min(i+1, 4)}">
+                ${attr.priority === 'required' ? '●' : attr.priority === 'recommended' ? '◐' : '○'}
+                ${attr.name.replace(/_/g, ' ')}
+            </div>
+        `).join('');
+
+        const recommendationsHtml = data.recommendations.map((rec, i) => `
+            <div class="recommendation-item animate-in stagger-${Math.min(i+1, 4)}">${rec}</div>
+        `).join('');
+
+        const riskColor = data.riskLevel === 'low' ? 'var(--success)' : data.riskLevel === 'medium' ? 'var(--warning)' : 'var(--danger)';
+
+        resultsPanel.innerHTML = `
+            <div class="card animate-in">
+                <div class="card-header">
+                    <div class="card-header-icon" style="background: ${riskColor}15; color: ${riskColor};">📊</div>
+                    <div>
+                        <div class="card-header-title">Analysis Results</div>
+                        <div class="card-header-subtitle">${errorCount} errors, ${warningCount} warnings found</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Risk Score -->
+                    <div class="risk-section animate-in stagger-1">
+                        <div class="risk-header">
+                            <div class="risk-score">
+                                <div class="risk-ring ${data.riskLevel}">${data.riskScore}</div>
+                                <div>
+                                    <div class="risk-label ${data.riskLevel}">${data.riskLevel.toUpperCase()} RISK</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">out of 100</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${errorCount} errors</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${warningCount} warnings</div>
+                            </div>
+                        </div>
+                        <div class="risk-bar">
+                            <div class="risk-bar-fill ${data.riskLevel}" style="width: ${data.riskScore}%"></div>
+                        </div>
+                        <div class="risk-explanation">${data.explanation}</div>
+                    </div>
+
+                    <!-- Violations -->
+                    <div class="section-title">Violations</div>
+                    <div class="violations-list">
+                        ${violationsHtml}
+                    </div>
+
+                    <!-- Fixed Title -->
+                    <div class="fixed-section animate-in stagger-2">
+                        <div class="fixed-header">
+                            <span class="fixed-label">Optimized Title</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">${data.fixedTitle.length} chars</span>
+                        </div>
+                        <div class="fixed-box">
+                            ${data.fixedTitle}
+                            <button class="btn btn-sm btn-ghost copy-btn" onclick="copyToClipboard('${data.fixedTitle.replace(/'/g, "\'")}', 'Title')">Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Description -->
+                    <div class="fixed-section animate-in stagger-3">
+                        <div class="fixed-header">
+                            <span class="fixed-label">Optimized Description</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">${data.fixedDescription.length} chars</span>
+                        </div>
+                        <div class="fixed-box" style="white-space: pre-wrap;">
+                            ${data.fixedDescription}
+                            <button class="btn btn-sm btn-ghost copy-btn" onclick="copyToClipboard('${data.fixedDescription.replace(/'/g, "\'").replace(/\n/g, "\n")}', 'Description')">Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- Required Attributes -->
+                    <div class="section-title">Required & Recommended Attributes</div>
+                    <div class="attributes-grid">
+                        ${attributesHtml}
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="section-title">Action Items</div>
+                    <div class="recommendations-list">
+                        ${recommendationsHtml}
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-section animate-in stagger-4">
+                <h3>Need Help Fixing Your GMC Feed?</h3>
+                <p>Get expert help with bulk fixes, feed optimization, and ongoing GMC management.</p>
+                <a href="mailto:help@gmc-analyzer.com?subject=GMC Feed Help Request" class="cta-btn">
+                    📧 Get Expert Help
+                </a>
+            </div>
+        `;
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const title = titleInput.value.trim();
+        const description = descInput.value.trim();
+        const country = document.getElementById('country').value;
+        const category = document.getElementById('category').value;
+        const issue = document.getElementById('issue').value;
+
+        if (!title || !description) return;
+
+        // Loading state
+        submitBtn.disabled = true;
+        btnText.innerHTML = '<div class="spinner"></div> Analyzing...';
+
+        // Simulate processing for UX
+        await new Promise(r => setTimeout(r, 1200));
+
+        const results = analyzeProduct(title, description, country, category, issue);
+        renderResults(results);
+
+        // Reset button
+        submitBtn.disabled = false;
+        btnText.textContent = '🔍 Analyze & Fix My Product';
+
+        // Scroll to results on mobile
+        if (window.innerWidth < 1024) {
+            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+    </script>
+</body>
+</html>
