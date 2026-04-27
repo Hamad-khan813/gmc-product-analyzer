@@ -51,6 +51,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
+            -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             background: rgba(255,255,255,0.95);
         }
@@ -680,7 +681,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Target Country <span class="required">*</span></label>
-                                <select id="country">
+                                <select title ="country" id="country">
                                     <option value="US">🇺🇸 United States</option>
                                     <option value="UK">🇬🇧 United Kingdom</option>
                                     <option value="CA">🇨🇦 Canada</option>
@@ -693,7 +694,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Category <span class="required">*</span></label>
-                                <select id="category">
+                                <select title="category" id="category">
                                     <option value="apparel">Apparel & Accessories</option>
                                     <option value="electronics">Electronics</option>
                                     <option value="home">Home & Garden</option>
@@ -709,7 +710,7 @@
 
                         <div class="form-group">
                             <label class="form-label">Known Issue (Optional)</label>
-                            <select id="issue">
+                            <select title="issue" id="issue">
                                 <option value="optimize">Not sure — Just optimize</option>
                                 <option value="disapproved">Product disapproved</option>
                                 <option value="limited">Limited performance</option>
